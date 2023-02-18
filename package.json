@@ -1,14 +1,14 @@
 {
   "name": "apiproject",
   "version": "1.0.0",
-  "description": "",
+  "description": "api for blog",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Essien Emmanuel",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.1",
