@@ -19,8 +19,8 @@ exports.getPosts = (req, res, next) => {
     });
 };
 
-exports.postPosts = (req, res, next) => {
-    const { title, creator, date, content } = req.body;
+exports.postPosts = async (req, res, next) => {
+    const { title, name, date, content } = req.body;
     const image = req?.file;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -34,19 +34,14 @@ exports.postPosts = (req, res, next) => {
     }
     const post = new Post({
         title: title,
-        imageUrl: imageUrl,
+        imageUrl: "images/shoe-sneakers-running-shoes-white-sport.png",
         content: content,
+        creator: { name: "Essien Emmanuel" },
     });
-    res.status(201).json({
+    const createdPost = await post.save();
+    console.log("created post", createdPost);
+    return res.status(201).json({
         message: "post created successfully!",
-        post: {
-            _id: new Date().toISOString(),
-            title: title,
-            content: content,
-            creator: {
-                name: "Essien Emmanuel",
-            },
-            createdAt: new Date(),
-        },
+        post: createdPost,
     });
 };
