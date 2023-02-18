@@ -3,6 +3,7 @@ const errorController = require("../controllers/error");
 
 const { validationResult } = require("express-validator/check");
 
+/* Fetching all the posts from the database. */
 exports.getPosts = async (req, res, next) => {
     try {
         const posts = await Post.find();
@@ -19,6 +20,7 @@ exports.getPosts = async (req, res, next) => {
         errorController.throwServerError(err, next);
     }
 };
+/* Fetching a single post from the database. */
 
 exports.getOnepost = async (req, res, next) => {
     try {
@@ -38,9 +40,10 @@ exports.getOnepost = async (req, res, next) => {
     }
 };
 
+/* Creating a new post. */
 exports.postPosts = async (req, res, next) => {
     try {
-        const { title, name, date, content } = req.body;
+        const { title, name, content } = req.body;
         const image = req?.file;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -52,11 +55,14 @@ exports.postPosts = async (req, res, next) => {
             throw error;
         }
         if (!image) {
-            //code
+            const error = new Error("No Image Uploaded");
+            error.statusCode = 422;
+            throw error;
         }
+        const imageUrl = image.path;
         const post = new Post({
             title: title,
-            imageUrl: "images/shoe-sneakers-running-shoes-white-sport.png",
+            imageUrl: imageUrl,
             content: content,
             creator: { name: "Essien Emmanuel" },
         });
