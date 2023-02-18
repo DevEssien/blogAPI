@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 
 const feedRoutes = require("./routes/feed");
 
@@ -22,8 +23,20 @@ app.use((req, res, next) => {
 
 app.use("/feed", feedRoutes);
 
+//connect to mongodb locally
+
+mongoose.set("strictQuery", false);
+
+mongoose.connect(
+    "mongodb://localhost:27017/blogDB",
+    { useNewUrlParser: true },
+    (err) => {
+        if (!err) {
+            console.log("connected to db successfully!");
+        }
+    },
+);
+
 app.listen(8080, () => {
     console.log("server spinning at port 8080");
 });
-
-// /home/chinedu/.ssh/essien_id_ed25519
