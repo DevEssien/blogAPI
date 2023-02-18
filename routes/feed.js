@@ -8,6 +8,9 @@ const router = express.Router();
 //GET /feed/route
 router.get("/posts", feedController.getPosts);
 
+router.get("/post/:postId", feedController.getOnepost);
+
+//POST /feed/route
 router.post(
     "/post",
     [

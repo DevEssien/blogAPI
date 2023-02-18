@@ -1,22 +1,41 @@
 const Post = require("../models/post");
+const errorController = require("../controllers/error");
 
 const { validationResult } = require("express-validator/check");
 
-exports.getPosts = (req, res, next) => {
-    res.status(200).json({
-        posts: [
-            {
-                _id: "1",
-                creator: {
-                    name: "Essien Emmanuel",
-                },
-                content: "Nigeria is in a state of political dilema",
-                imageUrl: "images/shoe-sneakers-running-shoes-white-sport.png",
-                title: "Politics",
-                createdAt: new Date(),
-            },
-        ],
-    });
+exports.getPosts = async (req, res, next) => {
+    try {
+        const posts = await Post.find();
+        if (!posts) {
+            const error = new Error("Posts Not Found!");
+            error.statusCode = 404;
+            throw error;
+        }
+        return res.status(200).json({
+            message: "All posts fetched",
+            posts: posts,
+        });
+    } catch (err) {
+        errorController.throwServerError(err, next);
+    }
+};
+
+exports.getOnepost = async (req, res, next) => {
+    try {
+        const postId = req.params.postId;
+        const post = await Post.findById(postId);
+        if (!post) {
+            const error = new Error("Post Not found!");
+            error.statusCode = 404;
+            throw error;
+        }
+        return res.status(200).json({
+            message: "Post fetched.",
+            post: post,
+        });
+    } catch (err) {
+        errorController.throwServerError(err, next);
+    }
 };
 
 exports.postPosts = async (req, res, next) => {
@@ -47,9 +66,6 @@ exports.postPosts = async (req, res, next) => {
             post: createdPost,
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        errorController.throwServerError(err, next);
     }
 };
