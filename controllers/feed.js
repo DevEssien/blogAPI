@@ -1,7 +1,9 @@
+const fs = require("fs");
+const path = require("path");
+const { validationResult } = require("express-validator/check");
+
 const Post = require("../models/post");
 const errorController = require("../controllers/error");
-
-const { validationResult } = require("express-validator/check");
 
 /* Fetching all the posts from the database. */
 exports.getPosts = async (req, res, next) => {
@@ -47,11 +49,8 @@ exports.postPosts = async (req, res, next) => {
         const image = req?.file;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const error = new Error(
-                "Validation failed, entered data is incorrect",
-            );
+            const error = new Error("Validation failed! Check input data");
             error.statusCode = 422;
-            console.log("post posts error 422");
             throw error;
         }
         if (!image) {
@@ -74,4 +73,50 @@ exports.postPosts = async (req, res, next) => {
     } catch (err) {
         errorController.throwServerError(err, next);
     }
+};
+
+exports.updatePost = async (req, res, next) => {
+    try {
+        const postId = req.params?.postId;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const error = new Error("Validation failed! Check input data");
+            error.statusCode = 422;
+            throw error;
+        }
+        const { title, image, content } = req.body;
+        let imageUrl = image;
+        const post = await Post.findById(postId);
+        if (!post) {
+            const error = new Error("Post Not Found!");
+            error.statusCode = 404;
+            throw error;
+        }
+        if (req.file) {
+            imageUrl = req?.file?.path;
+        }
+        if (!imageUrl) {
+            const error = new Error("No Image Uploaded");
+            error.statusCode = 422;
+            throw error;
+        }
+        if (imageUrl !== post?.imageUrl) {
+            clearImage(post?.imageUrl);
+        }
+        post.title = title;
+        post.content = content;
+        post.imageUrl = imageUrl;
+        const updatedPost = await post.save();
+        return res.status(200).json({
+            message: "Post Updated",
+            post: updatedPost,
+        });
+    } catch (err) {
+        errorController.throwServerError(err, next);
+    }
+};
+
+const clearImage = (filePath) => {
+    filePath = path.join(__dirname, "..", filePath);
+    fs.unlink(filePath, (err) => console.log(err));
 };
