@@ -105,8 +105,18 @@ exports.updatePost = async (req, res, next) => {
             error.statusCode = 404;
             throw error;
         }
+        if (post.creator.toString() !== req.userId) {
+            const error = new Error("Not Authorized");
+            error.statusCode = 403;
+            throw error;
+        }
         if (req.file) {
             imageUrl = req?.file?.path;
+            if (post.creator.toString() !== req.userId) {
+                const error = new Error("Not Authorized");
+                error.statusCode = 403;
+                throw error;
+            }
         }
         if (!imageUrl) {
             const error = new Error("No Image Uploaded");
@@ -132,12 +142,16 @@ exports.updatePost = async (req, res, next) => {
 /* Deleting a post from the database. */
 exports.deletePost = async (req, res, next) => {
     try {
-        console.log("deleted post");
         const postId = req.params?.postId;
         const post = await Post.findById(postId);
         if (!post) {
             const error = new Error("Post Not Found! ");
             error.statusCode = 404;
+            throw error;
+        }
+        if (post.creator.toString() !== req.userId) {
+            const error = new Error("Not Authorized");
+            error.statusCode = 403;
             throw error;
         }
         clearImage(post?.imageUrl);
@@ -147,6 +161,9 @@ exports.deletePost = async (req, res, next) => {
             error.statusCode = 404;
             throw error;
         }
+        const user = await User.findById(req.userId);
+        user.posts.pull(postId);
+        await user.save();
         return res.status(200).json({
             message: "Post Deleted",
         });

@@ -15,8 +15,6 @@ module.exports = (req, res, next) => {
     } catch (err) {
         errorController.throwServerError(err, next);
     }
-    console.log(decodedToken);
-
     if (!decodedToken) {
         const error = new Error("Authorization failed");
         error.statusCode = 401;
