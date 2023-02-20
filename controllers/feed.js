@@ -3,6 +3,7 @@ const path = require("path");
 const { validationResult } = require("express-validator/check");
 
 const Post = require("../models/post");
+const User = require("../models/user");
 const errorController = require("../controllers/error");
 
 /* Fetching all the posts from the database. */
@@ -64,17 +65,22 @@ exports.postPosts = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
+        const user = await User.findById(req?.userId);
+        const creator = user;
         const imageUrl = image.path;
         const post = new Post({
             title: title,
             imageUrl: imageUrl,
             content: content,
-            creator: { name: "Essien Emmanuel" },
+            creator: req?.userId,
         });
+        user.posts.push(post);
+        await user.save();
         const createdPost = await post.save();
         return res.status(201).json({
             message: "post created successfully!",
             post: createdPost,
+            creator: { _id: creator._id, name: creator.name },
         });
     } catch (err) {
         errorController.throwServerError(err, next);
