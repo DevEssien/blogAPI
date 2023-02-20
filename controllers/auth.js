@@ -70,7 +70,10 @@ exports.postLogin = async (req, res, next) => {
                 }
                 //Generating a jwt token
                 const token = jwt.sign(
-                    { email: foundUser.email, _id: foundUser._id.toString() },
+                    {
+                        email: foundUser.email,
+                        userId: foundUser._id.toString(),
+                    },
                     "this0Is1My2secret3key4",
                     { expiresIn: "1h" },
                 );
