@@ -8,7 +8,12 @@ const errorController = require("../controllers/error");
 /* Fetching all the posts from the database. */
 exports.getPosts = async (req, res, next) => {
     try {
-        const posts = await Post.find();
+        const currentPage = req.query.page || 1;
+        const postsPerPage = 2;
+        const totalPostNum = await Post.find().countDocuments();
+        const posts = await Post.find()
+            .skip((currentPage - 1) * postsPerPage)
+            .limit(postsPerPage);
         if (!posts) {
             const error = new Error("Posts Not Found!");
             error.statusCode = 404;
@@ -17,6 +22,7 @@ exports.getPosts = async (req, res, next) => {
         return res.status(200).json({
             message: "All posts fetched",
             posts: posts,
+            totalItems: totalPostNum,
         });
     } catch (err) {
         errorController.throwServerError(err, next);
