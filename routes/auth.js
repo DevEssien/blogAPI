@@ -7,7 +7,7 @@ const User = require("../models/user");
 
 const router = express.Router();
 
-router.post(
+router.put(
     "/signup",
     [
         body("email")
@@ -24,6 +24,17 @@ router.post(
         body("name").trim().not().isEmpty(),
     ],
     authController.putSignup,
+);
+
+router.post(
+    "/login",
+    [
+        body("email")
+            .isEmail()
+            .withMessage("Please enter a valid email address")
+            .normalizeEmail(),
+    ],
+    authController.postLogin,
 );
 
 module.exports = router;
