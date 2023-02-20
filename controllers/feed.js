@@ -81,6 +81,7 @@ exports.postPosts = async (req, res, next) => {
     }
 };
 
+/* Updating a post. */
 exports.updatePost = async (req, res, next) => {
     try {
         const postId = req.params?.postId;
@@ -122,6 +123,7 @@ exports.updatePost = async (req, res, next) => {
     }
 };
 
+/* Deleting a post from the database. */
 exports.deletePost = async (req, res, next) => {
     try {
         console.log("deleted post");
@@ -147,6 +149,10 @@ exports.deletePost = async (req, res, next) => {
     }
 };
 
+/**
+ * It takes a file path as an argument, joins it with the current directory, and then deletes the file
+ * @param filePath - The path to the file that we want to delete.
+ */
 const clearImage = (filePath) => {
     filePath = path.join(__dirname, "..", filePath);
     fs.unlink(filePath, (err) => console.log(err));

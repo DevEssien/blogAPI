@@ -61,10 +61,12 @@ app.use("/auth", authRoutes);
 app.use((error, req, res, next) => {
     console.log(error);
     const status = error?.statusCode || 500;
-    const message = error?.message;
+    const message = error?.message || "Server side Error";
+    const data = error?.data || null;
     res.status(status).json({
         message: message,
         status: status,
+        data: data,
     });
 });
 
