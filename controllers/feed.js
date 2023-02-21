@@ -15,6 +15,7 @@ exports.getPosts = async (req, res, next) => {
         const totalPostNum = await Post.find().countDocuments();
         const posts = await Post.find()
             .populate("creator")
+            .sort({ createdAt: -1 })
             .skip((currentPage - 1) * postsPerPage)
             .limit(postsPerPage);
         if (!posts) {
@@ -179,6 +180,9 @@ exports.deletePost = async (req, res, next) => {
         const user = await User.findById(req.userId);
         user.posts.pull(postId);
         await user.save();
+
+        io.getIO().emit("post", { action: "delete", post: postId });
+
         return res.status(200).json({
             message: "Post Deleted",
         });
