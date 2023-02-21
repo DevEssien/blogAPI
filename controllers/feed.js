@@ -111,20 +111,20 @@ exports.updatePost = async (req, res, next) => {
         }
         const { title, image, content } = req.body;
         let imageUrl = image;
-        const post = await Post.findById(postId);
+        const post = await Post.findById(postId).populate("creator");
         if (!post) {
             const error = new Error("Post Not Found!");
             error.statusCode = 404;
             throw error;
         }
-        if (post.creator.toString() !== req.userId) {
+        if (post.creator._id.toString() !== req.userId) {
             const error = new Error("Not Authorized");
             error.statusCode = 403;
             throw error;
         }
         if (req.file) {
             imageUrl = req?.file?.path;
-            if (post.creator.toString() !== req.userId) {
+            if (post.creator._id.toString() !== req.userId) {
                 const error = new Error("Not Authorized");
                 error.statusCode = 403;
                 throw error;
@@ -142,6 +142,9 @@ exports.updatePost = async (req, res, next) => {
         post.content = content;
         post.imageUrl = imageUrl;
         const updatedPost = await post.save();
+
+        io.getIO().emit("post", { action: "update", post: post });
+
         return res.status(200).json({
             message: "Post Updated",
             post: updatedPost,
@@ -161,7 +164,7 @@ exports.deletePost = async (req, res, next) => {
             error.statusCode = 404;
             throw error;
         }
-        if (post.creator.toString() !== req.userId) {
+        if (post.creator._id.toString() !== req.userId) {
             const error = new Error("Not Authorized");
             error.statusCode = 403;
             throw error;
