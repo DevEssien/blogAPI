@@ -14,6 +14,7 @@ exports.getPosts = async (req, res, next) => {
     try {
         const totalPostNum = await Post.find().countDocuments();
         const posts = await Post.find()
+            .populate("creator")
             .skip((currentPage - 1) * postsPerPage)
             .limit(postsPerPage);
         if (!posts) {
@@ -80,7 +81,13 @@ exports.postPosts = async (req, res, next) => {
         const createdPost = await post.save();
 
         //inform other users about newly created post
-        io.getIO().emit("posts", { action: "create", post: post });
+        io.getIO().emit("posts", {
+            action: "create",
+            post: {
+                ...post._doc,
+                creator: { _id: req.userId, name: user.name },
+            },
+        });
 
         return res.status(201).json({
             message: "post created successfully!",
