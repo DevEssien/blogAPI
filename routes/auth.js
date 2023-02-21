@@ -7,6 +7,15 @@ const User = require("../models/user");
 const isAuth = require("../middlewares/is-auth");
 const router = express.Router();
 
+router.get("/status", isAuth, authController.getUserStatus);
+
+router.patch(
+    "/status",
+    isAuth,
+    [body("status").trim().not().isEmpty()],
+    authController.updateUserStatus,
+);
+
 router.put(
     "/signup",
     [

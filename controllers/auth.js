@@ -89,3 +89,34 @@ exports.postLogin = async (req, res, next) => {
         errorController.throwServerError(err, next);
     }
 };
+
+exports.getUserStatus = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            const error = new Error("User not found.");
+            error.statusCode = 404;
+            throw error;
+        }
+        res.status(200).json({ status: user.status });
+    } catch (err) {
+        errorController.throwServerError(err, next);
+    }
+};
+
+exports.updateUserStatus = async (req, res, next) => {
+    const newStatus = req.body.status;
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            const error = new Error("User not found.");
+            error.statusCode = 404;
+            throw error;
+        }
+        user.status = newStatus;
+        await user.save();
+        res.status(200).json({ message: "User updated." });
+    } catch (err) {
+        errorController.throwServerError(err, next);
+    }
+};
