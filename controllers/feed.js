@@ -8,9 +8,9 @@ const errorController = require("../controllers/error");
 
 /* Fetching all the posts from the database. */
 exports.getPosts = async (req, res, next) => {
+    const currentPage = req.query.page || 1;
+    const postsPerPage = 2;
     try {
-        const currentPage = req.query.page || 1;
-        const postsPerPage = 2;
         const totalPostNum = await Post.find().countDocuments();
         const posts = await Post.find()
             .skip((currentPage - 1) * postsPerPage)
