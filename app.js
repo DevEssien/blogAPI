@@ -86,7 +86,7 @@ mongoose.connect(
 );
 
 const server = require("http").createServer(app);
-const io = require("socket.io")(server, { cors: { origin: "*" } });
+const io = require("./socket").init(server);
 
 server.listen(8080, () => {
     console.log("Server is running on port 3000");
