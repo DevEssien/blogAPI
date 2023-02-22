@@ -1,11 +1,13 @@
 const path = require("path");
 const express = require("express");
+const { graphqlHTTP } = require("express-graphql");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const multer = require("multer");
-const http = require("http");
 
 const error = require("./controllers/error");
+const graphqlSchema = require("./graphql/schema");
+const graphqlResolver = require("./graphql/resolvers");
 
 const app = express();
 
@@ -55,6 +57,14 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use(
+    "/graphql",
+    graphqlHTTP({
+        schema: graphqlSchema,
+        rootValue: graphqlResolver,
+    }),
+);
+
 app.use((error, req, res, next) => {
     console.log(error);
     const status = error?.statusCode || 500;
@@ -80,8 +90,6 @@ mongoose.connect(
     },
 );
 
-const server = require("http").createServer(app);
-
-server.listen(8080, () => {
+app.listen(8080, () => {
     console.log("Server is running on port 3000");
 });
