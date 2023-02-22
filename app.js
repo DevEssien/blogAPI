@@ -5,8 +5,6 @@ const mongoose = require("mongoose");
 const multer = require("multer");
 const http = require("http");
 
-const feedRoutes = require("./routes/feed");
-const authRoutes = require("./routes/auth");
 const error = require("./controllers/error");
 
 const app = express();
@@ -57,9 +55,6 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use("/feed", feedRoutes);
-app.use("/auth", authRoutes);
-
 app.use((error, req, res, next) => {
     console.log(error);
     const status = error?.statusCode || 500;
@@ -86,13 +81,7 @@ mongoose.connect(
 );
 
 const server = require("http").createServer(app);
-const io = require("./socket").init(server);
 
 server.listen(8080, () => {
     console.log("Server is running on port 3000");
-});
-
-io.on("connection", (socket) => {
-    console.log("client connected");
-    console.log(socket.id);
 });
