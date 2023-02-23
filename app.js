@@ -54,6 +54,9 @@ app.use((req, res, next) => {
         "Access-Control-Allow-headers",
         "Content-Type, Authorization",
     );
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(200);
+    }
     next();
 });
 
@@ -63,6 +66,19 @@ app.use(
         schema: graphqlSchema,
         rootValue: graphqlResolver,
         graphiql: true,
+        formatError(err) {
+            if (!err.originalError) {
+                return err;
+            }
+            const data = err.originalError.data || null;
+            const message = err.message || "an error occured!";
+            const code = err.originalError.code || 500;
+            return {
+                status: code,
+                message: message,
+                data: data,
+            };
+        },
     }),
 );
 
