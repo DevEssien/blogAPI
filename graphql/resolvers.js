@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
 module.exports = {
@@ -42,5 +43,48 @@ module.exports = {
             ...createdUser._doc,
             _id: createdUser._id.toString(),
         };
+    },
+    login: async function ({ email, password }) {
+        const errors = [];
+        const user = await User.findOne({ email: email });
+        if (!user || !validator.isEmail(email)) {
+            errors.push({
+                message: "No user with email exist or Invalid email input",
+            });
+        }
+        if (validator.isEmpty(password)) {
+            errors.push({
+                message: "Password too short! Check password input",
+            });
+        }
+        if (errors.length > 0) {
+            const error = new Error("Invalid input");
+            error.code = 422;
+            error.data = errors;
+            throw error;
+        }
+        await bcrypt.compare(password, user?.password, (err, passwordMatch) => {
+            if (err) {
+                throw err;
+            }
+            if (!passwordMatch) {
+                errors.push({ message: "Incorrect password" });
+                if (errors.length > 0) {
+                    const error = new Error("Invalid input");
+                    error.code = 401;
+                    error.data = errors;
+                    throw error;
+                }
+            }
+            const token = jwt.sign(
+                { email: email, userId: user?.id.toString() },
+                "this3is4my3secret3key5007",
+                { expiresIn: "1h" },
+            );
+            return {
+                token: token,
+                userId: user?.id.toString(),
+            };
+        });
     },
 };
