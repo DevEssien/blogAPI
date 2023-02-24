@@ -71,6 +71,7 @@ app.use(
                 return err;
             }
             const data = err.originalError.data || null;
+            console.log("data error", err.originalError.data);
             const message = err.message || "an error occured!";
             const code = err.originalError.code || 500;
             return {

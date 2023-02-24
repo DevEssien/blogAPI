@@ -52,6 +52,11 @@ module.exports = {
                 message: "No user with email exist or Invalid email input",
             });
         }
+        if (!user) {
+            const error = new Error("User not found");
+            error.code = 404;
+            throw error;
+        }
         if (validator.isEmpty(password)) {
             errors.push({
                 message: "Password too short! Check password input",
@@ -63,28 +68,26 @@ module.exports = {
             error.data = errors;
             throw error;
         }
-        await bcrypt.compare(password, user?.password, (err, passwordMatch) => {
-            if (err) {
-                throw err;
+        const passwordMatch = await bcrypt.compare(password, user?.password);
+        if (!passwordMatch) {
+            errors.push({
+                message: "Incorrect password!",
+            });
+            if (errors.length > 0) {
+                const error = new Error("Incorrect password");
+                error.code = 422;
+                error.data = errors;
+                throw error;
             }
-            if (!passwordMatch) {
-                errors.push({ message: "Incorrect password" });
-                if (errors.length > 0) {
-                    const error = new Error("Invalid input");
-                    error.code = 401;
-                    error.data = errors;
-                    throw error;
-                }
-            }
-            const token = jwt.sign(
-                { email: email, userId: user?.id.toString() },
-                "this3is4my3secret3key5007",
-                { expiresIn: "1h" },
-            );
-            return {
-                token: token,
-                userId: user?.id.toString(),
-            };
-        });
+        }
+        const token = jwt.sign(
+            { email: user?.email, userId: user?._id.toString() },
+            "this3is4my3secret3key5007",
+            { expiresIn: "1h" },
+        );
+        return {
+            token: token,
+            userId: user?._id.toString(),
+        };
     },
 };
