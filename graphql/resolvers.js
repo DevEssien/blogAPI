@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const Post = require("../models/post");
 
 module.exports = {
     createUser: async function ({ userInput }, req) {
@@ -44,6 +45,7 @@ module.exports = {
             _id: createdUser._id.toString(),
         };
     },
+
     login: async function ({ email, password }) {
         const errors = [];
         const user = await User.findOne({ email: email });
@@ -88,6 +90,43 @@ module.exports = {
         return {
             token: token,
             userId: user?._id.toString(),
+        };
+    },
+
+    createPost: async ({ postInput }, req) => {
+        const title = postInput.title;
+        const imageUrl = postInput.imageUrl;
+        const content = postInput.content;
+        const errors = [];
+        if (
+            validator.isEmpty(title) ||
+            !validator.isLength(title, { min: 5 })
+        ) {
+            errors.push({ message: "Title is invalid" });
+        }
+        if (
+            validator.isEmpty(content) ||
+            !validator.isLength(content, { min: 5 })
+        ) {
+            errors.push({ message: "content is invalid" });
+        }
+        if (errors.length > 0) {
+            const error = new Error("Invalid Input");
+            error.code = 422;
+            error.data = errors;
+            throw error;
+        }
+        const newPost = new Post({
+            title: title,
+            content: content,
+            imageUrl: imageUrl,
+        });
+        const createdPost = await newPost.save();
+        return {
+            ...createdPost._doc,
+            _id: createdPost?._id.toString(),
+            createdAt: createdPost.createdAt.toISOString(),
+            updatedAt: createdPost.updatedAt.toISOString(),
         };
     },
 };
