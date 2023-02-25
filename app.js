@@ -8,6 +8,7 @@ const multer = require("multer");
 const error = require("./controllers/error");
 const graphqlSchema = require("./graphql/schema");
 const graphqlResolver = require("./graphql/resolvers");
+const auth = require("./middlewares/auth");
 
 const app = express();
 
@@ -59,6 +60,8 @@ app.use((req, res, next) => {
     }
     next();
 });
+
+app.use(auth);
 
 app.use(
     "/graphql",
