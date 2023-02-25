@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const Post = require("../models/post");
 
 module.exports = {
     createUser: async function ({ userInput }, req) {
@@ -17,6 +19,8 @@ module.exports = {
         }
         if (errors.length > 0) {
             const error = new Error("Invalid input");
+            error.code = 422;
+            error.data = errors;
             throw error;
         }
         const existingEmail = await User.findOne({ email: email });
@@ -39,6 +43,90 @@ module.exports = {
         return {
             ...createdUser._doc,
             _id: createdUser._id.toString(),
+        };
+    },
+
+    login: async function ({ email, password }) {
+        const errors = [];
+        const user = await User.findOne({ email: email });
+        if (!user || !validator.isEmail(email)) {
+            errors.push({
+                message: "No user with email exist or Invalid email input",
+            });
+        }
+        if (!user) {
+            const error = new Error("User not found");
+            error.code = 404;
+            throw error;
+        }
+        if (validator.isEmpty(password)) {
+            errors.push({
+                message: "Password too short! Check password input",
+            });
+        }
+        if (errors.length > 0) {
+            const error = new Error("Invalid input");
+            error.code = 422;
+            error.data = errors;
+            throw error;
+        }
+        const passwordMatch = await bcrypt.compare(password, user?.password);
+        if (!passwordMatch) {
+            errors.push({
+                message: "Incorrect password!",
+            });
+            if (errors.length > 0) {
+                const error = new Error("Incorrect password");
+                error.code = 422;
+                error.data = errors;
+                throw error;
+            }
+        }
+        const token = jwt.sign(
+            { email: user?.email, userId: user?._id.toString() },
+            "this3is4my3secret3key5007",
+            { expiresIn: "1h" },
+        );
+        return {
+            token: token,
+            userId: user?._id.toString(),
+        };
+    },
+
+    createPost: async ({ postInput }, req) => {
+        const title = postInput.title;
+        const imageUrl = postInput.imageUrl;
+        const content = postInput.content;
+        const errors = [];
+        if (
+            validator.isEmpty(title) ||
+            !validator.isLength(title, { min: 5 })
+        ) {
+            errors.push({ message: "Title is invalid" });
+        }
+        if (
+            validator.isEmpty(content) ||
+            !validator.isLength(content, { min: 5 })
+        ) {
+            errors.push({ message: "content is invalid" });
+        }
+        if (errors.length > 0) {
+            const error = new Error("Invalid Input");
+            error.code = 422;
+            error.data = errors;
+            throw error;
+        }
+        const newPost = new Post({
+            title: title,
+            content: content,
+            imageUrl: imageUrl,
+        });
+        const createdPost = await newPost.save();
+        return {
+            ...createdPost._doc,
+            _id: createdPost?._id.toString(),
+            createdAt: createdPost.createdAt.toISOString(),
+            updatedAt: createdPost.updatedAt.toISOString(),
         };
     },
 };
