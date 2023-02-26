@@ -1,4 +1,5 @@
 const path = require("path");
+fs = require("fs");
 const express = require("express");
 const { graphqlHTTP } = require("express-graphql");
 const bodyParser = require("body-parser");
@@ -63,6 +64,21 @@ app.use((req, res, next) => {
 
 app.use(auth);
 
+app.put("/post-image", (req, res, next) => {
+    if (!req.isAuth) {
+        throw new Error("Not Authenticated!");
+    }
+    if (!req.file) {
+        return res.status(200).json({ message: "No file provided!" });
+    }
+    if (req.body.oldPath) {
+        clearImage(req.body.oldPath);
+    }
+    return res
+        .status(200)
+        .join({ message: "file uploaded", filePath: req.file.path });
+});
+
 app.use(
     "/graphql",
     graphqlHTTP({
@@ -114,3 +130,12 @@ mongoose.connect(
 app.listen(8080, () => {
     console.log("Server is running on port 3000");
 });
+
+/**
+ * It takes a file path as an argument, joins it with the current directory, and then deletes the file
+ * @param filePath - The path to the file that we want to delete.
+ */
+const clearImage = (filePath) => {
+    filePath = path.join(__dirname, "..", filePath);
+    fs.unlink(filePath, (err) => console.log(err));
+};
