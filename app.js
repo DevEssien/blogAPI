@@ -71,12 +71,13 @@ app.put("/post-image", (req, res, next) => {
     if (!req.file) {
         return res.status(200).json({ message: "No file provided!" });
     }
+    console.log("req body", req.body);
     if (req.body.oldPath) {
         clearImage(req.body.oldPath);
     }
     return res
-        .status(200)
-        .join({ message: "file uploaded", filePath: req.file.path });
+        .status(201)
+        .json({ message: "file uploaded", filePath: req.file.path });
 });
 
 app.use(
@@ -137,5 +138,6 @@ app.listen(8080, () => {
  */
 const clearImage = (filePath) => {
     filePath = path.join(__dirname, "..", filePath);
+    console.log("file path", filePath);
     fs.unlink(filePath, (err) => console.log(err));
 };
