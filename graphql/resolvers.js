@@ -197,4 +197,58 @@ module.exports = {
             updatedAt: post.updatedAt.toISOString(),
         };
     },
+
+    updatePost: async function ({ id, postInput }, req) {
+        if (!req.isAuth) {
+            const error = new Error("Not Authenticated!");
+            error.code = 401;
+            throw error;
+        }
+        const title = postInput.title;
+        const imageUrl = postInput.imageUrl;
+        const content = postInput.content;
+        const errors = [];
+        if (
+            validator.isEmpty(title) ||
+            !validator.isLength(title, { min: 5 })
+        ) {
+            errors.push({ message: "Title is invalid" });
+        }
+        if (
+            validator.isEmpty(content) ||
+            !validator.isLength(content, { min: 5 })
+        ) {
+            errors.push({ message: "content is invalid" });
+        }
+        if (errors.length > 0) {
+            const error = new Error("Invalid Input");
+            error.code = 422;
+            error.data = errors;
+            throw error;
+        }
+        const post = await Post.findById(id).populate("creator");
+        if (!post) {
+            const error = new Error("No post found!");
+            error.code = 404;
+            throw error;
+        }
+        if (post.creator._id.toString() !== req.userId.toString()) {
+            const error = new Error("Not Authorized!");
+            error.code = 403;
+            throw error;
+        }
+        post.title = title;
+        post.content = content;
+        if (imageUrl !== "undefined") {
+            post.imageUrl = imageUrl;
+        }
+        const updatedPost = await post.save();
+        console.log("updated post", updatedPost);
+        return {
+            ...updatedPost._doc,
+            _id: updatedPost._id.toString(),
+            createdAt: updatedPost.createdAt.toISOString(),
+            updatedAt: updatedPost.updatedAt.toISOString(),
+        };
+    },
 };
