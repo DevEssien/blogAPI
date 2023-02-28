@@ -308,10 +308,16 @@ module.exports = {
             }
         }
         const user = await User.findById(req.userId);
+        if (!user) {
+            const error = new Error("User Not Found!");
+            error.code = 404;
+            throw error;
+        }
         user.status = status;
-        const savedUserStatus = await user.save();
+        await user.save();
         return {
             ...user._doc,
+            _id: user._id.toString(),
         };
     },
 };
