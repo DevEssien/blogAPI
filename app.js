@@ -1,5 +1,4 @@
 const path = require("path");
-fs = require("fs");
 const express = require("express");
 const { graphqlHTTP } = require("express-graphql");
 const bodyParser = require("body-parser");
@@ -10,6 +9,7 @@ const error = require("./controllers/error");
 const graphqlSchema = require("./graphql/schema");
 const graphqlResolver = require("./graphql/resolvers");
 const auth = require("./middlewares/auth");
+const { clearImage } = require("./utils/file");
 
 const app = express();
 
@@ -131,13 +131,3 @@ mongoose.connect(
 app.listen(8080, () => {
     console.log("Server is running on port 3000");
 });
-
-/**
- * It takes a file path as an argument, joins it with the current directory, and then deletes the file
- * @param filePath - The path to the file that we want to delete.
- */
-const clearImage = (filePath) => {
-    filePath = path.join(__dirname, "..", filePath);
-    console.log("file path", filePath);
-    fs.unlink(filePath, (err) => console.log(err));
-};
